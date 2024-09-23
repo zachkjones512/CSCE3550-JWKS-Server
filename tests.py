@@ -1,3 +1,10 @@
+"""
+Zachary Jones
+ZKJ0007
+CSCE 3055
+Project 1: JWKS Server
+tests.py: Runs test suite that sends get and post requests to web server
+"""
 import requests
 import jwt
 
