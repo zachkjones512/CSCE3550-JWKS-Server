@@ -2,7 +2,7 @@
 Zachary Jones
 ZKJ0007
 CSCE 3055
-Project 1: JWKS Server
+Project 2: JWKS Server
 main.py: Host web server using flask and authenticate JWTs
 """
 
