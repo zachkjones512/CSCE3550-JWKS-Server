@@ -1,10 +1,10 @@
-# JWKS Server - CSCE 3055 Project 1
+# JWKS Server - CSCE 3055 Project 2
 
 ### Code by Zachary Jones
 
 #### Keygen.py
 
-Generate keys in JWKS format
+Generate keys in JWKS format and places them in a SQLite database
 
 #### Main.py
 
