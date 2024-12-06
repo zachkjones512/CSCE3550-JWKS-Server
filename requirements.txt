@@ -2,3 +2,4 @@ Flask
 PyJWT
 cryptography
 requests
+argon2-cffi
