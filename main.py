@@ -9,6 +9,7 @@ main.py: Host web server using flask and authenticate JWTs
 from flask import Flask, jsonify, request #using flask for webserver
 from cryptography.hazmat.primitives import serialization
 from argon2 import PasswordHasher
+from base64 import b64encode, b64decode
 import time
 import jwt
 import sqlite3
@@ -53,8 +54,9 @@ def jwks(): #returns the JWKS with the public key
         rows = cursor.fetchall()
         for row in rows:
             kid, public_key, exp = row #creates a tuple of each row with the kid, the key, and the exp
-            key = serialization.load_pem_public_key(public_key.encode('utf-8')) #loads the private key
-            jwks_keys.append(RSAKey.serialize_jwks(str(kid), key, exp)) #use the serialize_jwks method to get the JWKS format
+            byte_key = RSAKey.decrypt_data(public_key) #loads the private key
+            serial_key = b64encode(byte_key).decode('utf-8')
+            jwks_keys.append(RSAKey.serialize_jwks(str(kid), serial_key, exp)) #use the serialize_jwks method to get the JWKS format
     
     jwks_output = {
         "keys": jwks_keys

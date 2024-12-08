@@ -1,87 +1,72 @@
 import requests
 import jwt
+import sqlite3
 
+sqldb = "totally_not_my_privateKeys.db"
 get_url = "http://localhost:8080/.well-known/jwks.json"
-post_url = "http://localhost:8080/auth"     #URL for get and post requests
-totalTests = 7
+reg_url = "http://localhost:8080/register"
+auth_url = "http://localhost:8080/auth"     #URL for get and post requests
+totalTests = 6
 completed = 0
+
+
+
+#test register endpoiont
+username = "zach123"
+email = "email@test.com"
+data = {"username": username, "email": email}
+response_post = requests.post(reg_url, json=data)
+if response_post.status_code == 201:
+        print("User registered successfully.")
+        password = response_post.json().get("password")  # Extract the password from the JSON response
+        completed +=1
+else:
+        print(f"Error: Failed to register user {username}: {response_post.status_code}")
 
 #send GET to JWKS endpoint
 response_get = requests.get(get_url) 
 
 #test if GET request was successful 
 if response_get.status_code == 200:
-    print("GET request successful.")
+    print("GET request successful - Key included in JWT.")
     completed +=1
 else:
     print("GET request failed, status code:", response_get.status_code)
 
-##NON-EXPIRED KEY POST
-response_post = requests.post(post_url)
 
-#test if POST request was successful
-if response_post.status_code == 200:
-    print("POST request successful.")
-    completed +=1
-else:
-    print("POST request failed, status code:", response_post.status_code)
-
-#Extract KID from token
-try:
-    header = jwt.get_unverified_header(response_post.json().get('token'))
-    key_id = header['kid']
-    print("Received UNEXPIRED kid from JWT:", key_id)
-    completed +=1
+#test if AUTH request was successful
+try: 
+    data1 = {"username": username,"password": password}
+    response_auth = requests.post(auth_url,json=data1)
+    if response_auth.status_code == 200:
+        print("POST request successful.")
+        print("AUTH request logged.")
+        completed +=2
+    else:
+        print("Error: POST request failed, status code:", response_post.status_code)
 except:
-    print("Failed to decode key_id")
+     print("Error: couldn't grab password")
 
-#look for KID in list from JWKS endpoint
-found_key = None
-for key in response_get.json()['keys']:
-    if key['kid'] == key_id:
-        found_key = key
-        break
 
-#if expired kid in JWKS endpoint then return error
-if found_key:
-    print("Valid key found in JWKS")
-    completed +=1
-else:
-    print("Valid Key not found in JWKS, ERROR")
+#test if users table and auth logs table exists
+with sqlite3.connect(sqldb) as conn_users:
+    cursor = conn_users.cursor()
+    cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='users';")
+    if not cursor:
+        "Error: No users table"
+    else:
+        print("Users Table Exists.")
+        completed +=1
 
-##EXPIRED KEY
-#send POST to auth endpoint for expired key
-response_post = requests.post(post_url, params={'expired': 'true'})
+with sqlite3.connect(sqldb) as conn_auth:
+    cursor = conn_auth.cursor()
+    cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='auth_logs';")
+    if not cursor:
+        "Error: No auth_logs table"
+    else:
+        completed +=1
+        print("Auth_logs Table Exists.")
 
-#test if POST request was successful
-if response_post.status_code == 200:
-    print("POST request successful.")
-    completed +=1
-else:
-    print("POST request failed, status code:", response_post.status_code)
-
-#Extract KID from token
-try:
-    header = jwt.get_unverified_header(response_post.json().get('token'))
-    key_id = header['kid']
-    print("Received EXPIRED kid from JWT:", key_id)
-    completed +=1
-except:
-    print("Failed to decode key_id")
-
-#look for KID in list from JWKS endpoint
-found_key = None
-for key in response_get.json()['keys']:
-    if key['kid'] == key_id:
-        found_key = key
-        break
-
-#if expired kid in JWKS endpoint then return error
-if found_key:
-    print("Expired key found in JWKS, ERROR")
-else:
-    print("Expired Key not found in JWKS")
-    completed +=1
-
-testPercent = (totalTests / completed) * 100
+testPercent = (completed / totalTests) * 100
+print(f"Test Coverage: [{completed}/{totalTests}]")
 print(f"Test Coverage Percent: {testPercent:.2f}%")

@@ -117,13 +117,6 @@ class RSAKey:
     def serialize_jwks(kid, key, exp):
         #converts the key into the JWKS format
 
-        #grabs the public key modulus and public exponent
-        pub_key = key.public_key()
-        pub_numbers = pub_key.public_numbers()
-
-        #converts those numbers into the base64 format
-        n = b64encode(pub_numbers.n.to_bytes(256, byteorder='big')).rstrip(b'=').decode('utf-8')
-        e = b64encode(pub_numbers.e.to_bytes(3, byteorder='big')).rstrip(b'=').decode('utf-8')
 
         #generate json
         jwks = {
@@ -132,8 +125,7 @@ class RSAKey:
             "typ": "JWT",         
             "kty": "RSA",           
             "use": "sig",           
-            "n": n,                 
-            "e": e,                 
+            "key": key,                                
             "exp": exp
         }
         return jwks        
