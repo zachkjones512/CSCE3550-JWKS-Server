@@ -1,6 +1,6 @@
-# JWKS Server - CSCE 3055 Project 2
+# JWKS Server
 
-### Code by Zachary Jones
+### Contributors: Zachary Jones
 
 #### Keygen.py
 
